@@ -8,7 +8,7 @@ import { MdHealthAndSafety } from 'react-icons/md';
 
 const featureCards = [
   { Icon: FaGlobe, color: '#06b6d4', title: 'Multilingual Triage', desc: 'Speak in English or Hindi. ArogyaVani collects symptoms in your language and routes you correctly — home care, clinic visit, or emergency — without any language barrier.' },
-  { Icon: FaBrain, color: '#a855f7', title: 'Semantic Medical Search', desc: 'Powered by Qdrant vector search and Ollama embeddings, the assistant semantically matches symptoms to medical knowledge — going beyond keywords to understand what you mean.' },
+  { Icon: FaBrain, color: '#a855f7', title: 'Semantic Medical Search', desc: 'Powered by Qdrant vector search and Jina AI embeddings, the assistant semantically matches symptoms to medical knowledge — going beyond keywords to understand what you mean.' },
   { Icon: FaMicrophone, color: '#10b981', title: 'Voice-First Triage', desc: 'No reading or typing required. Speak your symptoms, duration, and age — and get an instant triage decision: 🟢 home care, 🟡 visit a clinic, or 🔴 go to emergency now.' },
   { Icon: FaHospital, color: '#f59e0b', title: 'Comprehensive Coverage', desc: 'From common conditions like fever and cold to emergencies like snake bites and heart attacks — our knowledge base covers 30+ essential health topics.' },
   { Icon: FaShieldAlt, color: '#06b6d4', title: 'Always Available', desc: 'Available 24/7 without appointments or waiting. Get immediate health guidance anytime, anywhere — bridging the gap where healthcare access is limited.' },

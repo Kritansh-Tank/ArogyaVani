@@ -9,7 +9,7 @@ import { MdHealthAndSafety } from 'react-icons/md';
 const techStack = [
     { name: 'Vapi', role: 'Voice AI Platform', desc: 'Real-time voice conversations with configurable AI assistants, function calling, and multilingual TTS.', Icon: FaMicrophone, color: '#06b6d4', link: 'https://vapi.ai' },
     { name: 'Qdrant', role: 'Vector Database', desc: 'Cloud-hosted vector DB for semantic search. Stores 30+ medical entries as 768-dim embeddings with cosine similarity.', Icon: FaDatabase, color: '#a855f7', link: 'https://qdrant.tech' },
-    { name: 'Ollama', role: 'Local Embeddings', desc: 'Runs nomic-embed-text locally to generate 768-dimensional embeddings for medical knowledge and user queries.', Icon: FaBrain, color: '#10b981', link: 'https://ollama.com' },
+    { name: 'Jina AI', role: 'Hosted Embeddings', desc: 'Cloud-hosted embedding API generating 768-dim vectors for semantic medical search — compatible with the Qdrant collection with no re-seeding.', Icon: FaBrain, color: '#10b981', link: 'https://jina.ai' },
     { name: 'Next.js 16', role: 'Full-Stack Framework', desc: 'App Router with server-side API routes for Qdrant search, Vapi webhook handling, and knowledge base seeding.', Icon: FaBolt, color: '#f59e0b', link: 'https://nextjs.org' },
     { name: 'GPT-4o mini', role: 'Language Model', desc: 'Powers the conversational triage reasoning — interprets symptoms, decides triage level, and generates spoken responses via Vapi.', Icon: SiOpenai, color: '#ef4444', link: 'https://openai.com' },
     { name: 'ElevenLabs', role: 'Voice Synthesis', desc: 'High-quality multilingual TTS via Vapi integration for natural-sounding English and Hindi voice responses.', Icon: FaVolumeUp, color: '#06b6d4', link: 'https://elevenlabs.io' },
@@ -26,7 +26,7 @@ const flowSteps = [
     { Icon: FaMicrophone, label: 'User Speaks', sub: 'via Vapi', color: '#06b6d4' },
     { Icon: FaFileAlt, label: 'Transcribed', sub: 'Vapi STT', color: '#8b5cf6' },
     { Icon: SiOpenai, label: 'GPT-4o mini', sub: 'function calling', color: '#10b981' },
-    { Icon: FaBrain, label: 'Ollama Embeds', sub: 'nomic-embed-text', color: '#f59e0b' },
+    { Icon: FaBrain, label: 'Jina AI Embeds', sub: 'jina-embeddings-v2-base-en', color: '#f59e0b' },
     { Icon: FaDatabase, label: 'Qdrant Search', sub: 'cosine similarity', color: '#a855f7' },
     { Icon: FaSearch, label: 'Context Retrieved', sub: '30 medical topics', color: '#06b6d4' },
     { Icon: FaRoute, label: 'Triage Decision', sub: '🟢 🟡 🔴', color: '#ef4444' },
