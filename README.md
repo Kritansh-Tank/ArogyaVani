@@ -124,19 +124,19 @@ QDRANT_API_KEY=your_qdrant_api_key
 JINA_API_KEY=your_jina_api_key
 ```
 
-### 3. Pull Ollama model
+### 3. Start the dev server
 
 ```bash
 npm run dev
 ```
 
-### 5. Seed the Qdrant knowledge base (one-time)
+### 4. Seed the Qdrant knowledge base (one-time)
 
 ```bash
 curl -X POST http://localhost:3000/api/seed
 ```
 
-### 6. Open the app
+### 5. Open the app
 
 Visit **http://localhost:3000** → Click **Try Voice Triage** → Speak your symptom.
 
@@ -186,4 +186,4 @@ If selected for the offline round, the following enhancements are planned:
 
 ## 👥 Built at HackBLR 2026
 
-> Powered by **Vapi** · **Qdrant** · **Ollama** · **Next.js**
+> Powered by **Vapi** · **Qdrant**
