@@ -47,7 +47,18 @@ export function useVapi() {
             }
             if (msg.type === 'conversation-update' && msg.conversation) {
                 const messages = msg.conversation
-                    .filter((m) => m.role !== 'system' && m.content)
+                    .filter((m) => {
+                        // Only show user and assistant spoken messages — hide system, tool calls, tool results
+                        if (m.role === 'system') return false;
+                        if (m.role === 'tool') return false;
+                        if (m.role === 'function') return false;
+                        if (m.type === 'tool-call') return false;
+                        if (m.type === 'tool-result') return false;
+                        if (!m.content) return false;
+                        // Hide raw array content (tool results come as arrays)
+                        if (Array.isArray(m.content)) return false;
+                        return true;
+                    })
                     .map((m) => ({ role: m.role, text: m.content }));
                 if (messages.length > 0) {
                     setTranscript(messages);
