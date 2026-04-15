@@ -44,7 +44,7 @@ Vapi (STT + voice AI)
       ↓
 GPT-4o mini (function calling)
       ↓
-Ollama embeds query (nomic-embed-text, 768 dims)
+Jina AI embeds query (jina-embeddings-v2-base-en, 768 dims)
       ↓
 Qdrant semantic search (cosine similarity)
       ↓
@@ -66,8 +66,8 @@ ElevenLabs TTS speaks the response
 |---|---|
 | **Vapi** | Real-time voice AI, STT, function calling |
 | **Qdrant Cloud** | Vector database for semantic medical search |
-| **Ollama** (`nomic-embed-text`) | Local 768-dim text embeddings |
-| **GPT-4o mini** | Conversational reasoning & triage decisions |
+| **Jina AI** (`jina-embeddings-v2-base-en`) | Hosted 768-dim embeddings (1M tokens free) |
+| **GPT-4o mini** | Conversational reasoning & triage decisions (via Vapi credits) |
 | **ElevenLabs** | Multilingual TTS (EN + HI voices) |
 | **Next.js 16** | Full-stack framework (App Router) |
 
@@ -102,9 +102,9 @@ src/
 
 ### Prerequisites
 - Node.js 18+
-- [Ollama](https://ollama.com) running locally with `nomic-embed-text` model
 - Qdrant Cloud account (or local Qdrant instance)
 - Vapi account
+- Jina AI account (free, 1M tokens at [jina.ai](https://jina.ai))
 
 ### 1. Install dependencies
 
@@ -121,18 +121,10 @@ NEXT_PUBLIC_VAPI_PUBLIC_KEY=your_vapi_public_key
 VAPI_PRIVATE_KEY=your_vapi_private_key
 QDRANT_URL=https://your-cluster.qdrant.io
 QDRANT_API_KEY=your_qdrant_api_key
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_EMBED_MODEL=nomic-embed-text
+JINA_API_KEY=your_jina_api_key
 ```
 
 ### 3. Pull Ollama model
-
-```bash
-ollama pull nomic-embed-text
-ollama serve
-```
-
-### 4. Run the dev server
 
 ```bash
 npm run dev
