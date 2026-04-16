@@ -3,17 +3,49 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useVapi } from '@/hooks/useVapi';
-import { FaMicrophone, FaStop, FaHourglass } from 'react-icons/fa';
+import { FaMicrophone, FaStop, FaHourglass, FaCalendarAlt } from 'react-icons/fa';
 import { MdHealthAndSafety } from 'react-icons/md';
+import AppointmentModal from '@/components/AppointmentModal';
 
 export default function AssistantPage() {
     const [language, setLanguage] = useState('en');
     const { callStatus, speechStatus, transcript, error, toggleCall } = useVapi();
     const transcriptEndRef = useRef(null);
+    const [showModal, setShowModal] = useState(false);
+    const [lastConsultationId, setLastConsultationId] = useState(null);
+    const [lastTriageLevel, setLastTriageLevel] = useState('clinic');
+    const [lastSymptoms, setLastSymptoms] = useState('');
+    const prevStatusRef = useRef('idle');
 
     useEffect(() => {
         transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [transcript]);
+
+    // Show appointment modal when call ends
+    useEffect(() => {
+        if (prevStatusRef.current === 'active' && callStatus === 'idle') {
+            // Parse triage level from transcript
+            const allText = transcript.map(m => m.text).join(' ').toLowerCase();
+            let triage = 'clinic';
+            if (allText.includes('emergency') || allText.includes('🔴')) triage = 'emergency';
+            else if (allText.includes('home care') || allText.includes('🟢') || allText.includes('home')) triage = 'home';
+
+            const symptoms = transcript.find(m => m.role === 'user')?.text || '';
+            setLastTriageLevel(triage);
+            setLastSymptoms(symptoms);
+
+            // Fetch latest consultation ID from Supabase
+            fetch('/api/consultations/latest')
+                .then(r => r.json())
+                .then(d => { if (d.id) setLastConsultationId(d.id); })
+                .catch(() => { });
+
+            if (triage !== 'home') {
+                setTimeout(() => setShowModal(true), 1200);
+            }
+        }
+        prevStatusRef.current = callStatus;
+    }, [callStatus]);
 
     const isActive = callStatus === 'active';
     const isConnecting = callStatus === 'connecting';
@@ -35,11 +67,10 @@ export default function AssistantPage() {
     };
 
     const waveformBars = Array.from({ length: 12 }, (_, i) => i);
-
     const VoiceIcon = isConnecting ? FaHourglass : isActive ? FaStop : FaMicrophone;
 
     return (
-        <div className="assistant-page">
+        <div className="assistant-page" style={{ minHeight: '100vh', background: 'transparent' }}>
             {/* Header */}
             <header className="assistant-header">
                 <Link href="/" className="assistant-back">
@@ -49,68 +80,49 @@ export default function AssistantPage() {
                     <MdHealthAndSafety size={26} color="#06b6d4" />
                     {language === 'hi' ? 'आरोग्यवाणी' : 'ArogyaVani'}
                 </h1>
-                <div className="lang-toggle">
-                    <button
-                        className={`lang-btn ${language === 'en' ? 'active' : ''}`}
-                        onClick={() => setLanguage('en')}
-                        disabled={isActive || isConnecting}
-                    >EN</button>
-                    <button
-                        className={`lang-btn ${language === 'hi' ? 'active' : ''}`}
-                        onClick={() => setLanguage('hi')}
-                        disabled={isActive || isConnecting}
-                    >हिं</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="lang-toggle">
+                        <button className={`lang-btn ${language === 'en' ? 'active' : ''}`} onClick={() => setLanguage('en')} disabled={isActive || isConnecting}>EN</button>
+                        <button className={`lang-btn ${language === 'hi' ? 'active' : ''}`} onClick={() => setLanguage('hi')} disabled={isActive || isConnecting}>हिं</button>
+                    </div>
+                    <button onClick={() => setShowModal(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid rgba(6,182,212,0.3)', background: 'rgba(6,182,212,0.08)', color: '#06b6d4', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '600' }}>
+                        <FaCalendarAlt size={12} /> Book
+                    </button>
                 </div>
             </header>
 
             {/* Main */}
             <main className="assistant-main">
                 <div className="voice-section">
-                    {/* Voice Button */}
                     <div className="voice-button-wrapper">
                         <div className={`voice-rings ${isActive ? 'active' : ''}`}>
                             <div className="voice-ring" />
                             <div className="voice-ring" />
                             <div className="voice-ring" />
                         </div>
-                        <button
-                            className={`voice-button ${isActive ? 'active' : ''}`}
-                            onClick={() => toggleCall(language)}
-                            disabled={isConnecting}
-                            id="voice-button"
-                        >
+                        <button className={`voice-button ${isActive ? 'active' : ''}`} onClick={() => toggleCall(language)} disabled={isConnecting} id="voice-button">
                             <VoiceIcon size={32} color={isActive ? '#ff0000' : '#fff'} />
                         </button>
                     </div>
 
-                    {/* Waveform */}
                     <div className={`waveform ${isActive ? 'active' : ''}`}>
-                        {waveformBars.map((i) => (
-                            <div key={i} className="waveform-bar" />
-                        ))}
+                        {waveformBars.map((i) => <div key={i} className="waveform-bar" />)}
                     </div>
 
-                    {/* Status */}
                     <div className="voice-status">
                         <span className={`status-dot ${getStatusDotClass()}`} />
                         {getStatusText()}
                     </div>
 
-                    {/* Hint */}
                     <p className="voice-hint">
                         {language === 'hi'
-                            ? '💡 बताएं: लक्षण, कितने समय से है, और उम्र — जैसे "मुझे 2 दिन से बुखार है, मैं 35 साल का हूं"'
+                            ? '💡 बताएं: लक्षण, कितने समय से है, और उम्र — जैसे \"मुझे 2 दिन से बुखार है, मैं 35 साल का हूं\"'
                             : '💡 Describe your symptom, duration & age — e.g. "I have had a fever for 2 days, I am 35 years old"'}
                     </p>
 
-                    {/* Error */}
                     {error && (
-                        <div style={{
-                            color: '#ef4444', background: 'rgba(239,68,68,0.1)',
-                            border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px',
-                            padding: '0.75rem 1.25rem', fontSize: '0.9rem',
-                            maxWidth: '500px', textAlign: 'center',
-                        }}>
+                        <div style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', padding: '0.75rem 1.25rem', fontSize: '0.9rem', maxWidth: '500px', textAlign: 'center' }}>
                             {error}
                         </div>
                     )}
@@ -126,9 +138,7 @@ export default function AssistantPage() {
                     <div className="transcript-box">
                         {transcript.length === 0 ? (
                             <div className="transcript-empty">
-                                {language === 'hi'
-                                    ? 'बातचीत शुरू करने के लिए माइक्रोफोन बटन दबाएं...'
-                                    : 'Press the microphone button to start a conversation...'}
+                                {language === 'hi' ? 'बातचीत शुरू करने के लिए माइक्रोफोन बटन दबाएं...' : 'Press the microphone button to start a conversation...'}
                             </div>
                         ) : (
                             transcript.map((msg, i) => (
@@ -146,6 +156,16 @@ export default function AssistantPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Appointment Modal */}
+            {showModal && (
+                <AppointmentModal
+                    consultationId={lastConsultationId}
+                    triageLevel={lastTriageLevel}
+                    symptoms={lastSymptoms}
+                    onClose={() => setShowModal(false)}
+                />
+            )}
         </div>
     );
 }

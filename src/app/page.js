@@ -46,9 +46,6 @@ export default function Home() {
 
       {/* Hero */}
       <section className="hero" id="hero">
-        <div className="hero-orb hero-orb-1" />
-        <div className="hero-orb hero-orb-2" />
-        <div className="hero-orb hero-orb-3" />
         <div className="hero-content">
           <div className="hero-badge">
             <span className="dot" />

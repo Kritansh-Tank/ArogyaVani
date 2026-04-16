@@ -10,7 +10,12 @@
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.17.0",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.103.2",
     "@vapi-ai/web": "^2.5.2",
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.2",
+    "jsonwebtoken": "^9.0.3",
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",

@@ -1,6 +1,9 @@
+'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { FaSearch, FaCircle, FaHeartbeat, FaThermometerHalf, FaBolt } from 'react-icons/fa';
 import { MdHealthAndSafety, MdLocalHospital, MdShield, MdPregnantWoman, MdChildCare, MdPsychology } from 'react-icons/md';
+import { medicalKnowledge } from '@/lib/medical-data';
 
 const categories = ['All', 'condition', 'emergency', 'preventive', 'maternal_health', 'child_health', 'mental_health'];
 
@@ -14,34 +17,37 @@ const categoryMeta = {
     mental_health: { label: 'Mental Health', Icon: MdPsychology, color: '#8b5cf6' },
 };
 
-const triageConfig = {
-    home: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Home Care', Icon: FaCircle },
-    clinic: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Visit Clinic', Icon: FaCircle },
-    emergency: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Emergency', Icon: FaCircle },
+const triageByCategory = {
+    emergency: 'emergency',
+    condition: 'clinic',
+    preventive: 'home',
+    maternal_health: 'clinic',
+    child_health: 'home',
+    mental_health: 'clinic',
 };
 
-const topics = [
-    { title: 'Common Cold', category: 'condition', tags: ['runny nose', 'sneezing'], triage: 'home', snippet: 'Rest, drink warm fluids, steam inhalation for congestion. See doctor if symptoms last more than 10 days.', Icon: FaThermometerHalf, color: '#06b6d4' },
-    { title: 'Fever Management', category: 'condition', tags: ['temperature', 'body heat'], triage: 'clinic', snippet: 'Paracetamol 500mg every 6 hours. Seek help immediately if fever exceeds 103°F or lasts 3+ days.', Icon: FaThermometerHalf, color: '#ef4444' },
-    { title: 'Heart Attack Signs', category: 'emergency', tags: ['chest pain', 'breathlessness'], triage: 'emergency', snippet: 'Call 108 immediately. Chest pressure, arm/jaw pain, cold sweat — every minute counts.', Icon: FaHeartbeat, color: '#ef4444' },
-    { title: 'Diabetes Management', category: 'condition', tags: ['blood sugar', 'insulin'], triage: 'clinic', snippet: 'Control with diet, exercise and medication. Whole grains, veggies, lean protein. No sugary drinks.', Icon: MdHealthAndSafety, color: '#a855f7' },
-    { title: 'High Blood Pressure', category: 'condition', tags: ['BP', 'hypertension'], triage: 'clinic', snippet: 'Reduce salt to <5g/day. Exercise daily. Take medications without skipping.', Icon: FaHeartbeat, color: '#f59e0b' },
-    { title: 'Snake Bite First Aid', category: 'emergency', tags: ['venom', 'first aid'], triage: 'emergency', snippet: 'Keep calm, immobilize limb below heart. Rush to hospital immediately. Anti-venom available.', Icon: MdLocalHospital, color: '#ef4444' },
-    { title: 'Pregnancy Care', category: 'maternal_health', tags: ['prenatal', 'iron'], triage: 'clinic', snippet: 'Iron + folic acid daily. 4 antenatal visits minimum. Watch for danger signs like severe headache.', Icon: MdPregnantWoman, color: '#a855f7' },
-    { title: 'Child Vaccination', category: 'child_health', tags: ['BCG', 'DPT', 'OPV'], triage: 'home', snippet: 'BCG at birth, DPT at 6/10/14 weeks, Measles at 9 months. Free at government health centers.', Icon: MdChildCare, color: '#06b6d4' },
-    { title: 'Mental Health', category: 'mental_health', tags: ['anxiety', 'depression'], triage: 'clinic', snippet: 'Exercise, deep breathing, talk to trusted people. Helpline: iCALL 9152987821.', Icon: MdPsychology, color: '#8b5cf6' },
-    { title: 'Diarrhea', category: 'emergency', tags: ['ORS', 'loose motion'], triage: 'clinic', snippet: 'Drink ORS frequently. Continue light food. Seek help for blood in stool or severe vomiting.', Icon: MdLocalHospital, color: '#f59e0b' },
-    { title: 'Burns First Aid', category: 'emergency', tags: ['fire', 'burn'], triage: 'clinic', snippet: 'Cool under running water 10 min. No ice/toothpaste. Large burns — go to hospital immediately.', Icon: FaBolt, color: '#ef4444' },
-    { title: 'Malaria Prevention', category: 'preventive', tags: ['mosquito', 'fever chills'], triage: 'clinic', snippet: 'Mosquito nets + repellent. Blood test if fever with chills. Early treatment is crucial.', Icon: MdShield, color: '#10b981' },
-    { title: 'Asthma', category: 'condition', tags: ['inhaler', 'wheeze'], triage: 'clinic', snippet: 'Always carry inhaler. Avoid triggers. Use controller medication daily even when feeling well.', Icon: FaHeartbeat, color: '#06b6d4' },
-    { title: 'Hygiene & Sanitation', category: 'preventive', tags: ['handwash', 'clean water'], triage: 'home', snippet: 'Boil or filter water. Wash hands with soap before eating and after toilet.', Icon: MdShield, color: '#10b981' },
-    { title: 'Tuberculosis (TB)', category: 'condition', tags: ['cough', 'night sweats'], triage: 'clinic', snippet: 'Curable with 6-month DOTS treatment — free at government hospitals. Complete the full course.', Icon: MdHealthAndSafety, color: '#a855f7' },
-    { title: 'Dengue Care', category: 'condition', tags: ['platelet', 'mosquito'], triage: 'clinic', snippet: 'Paracetamol only (NOT aspirin). Monitor platelet count. Hospital if bleeding or severe pain.', Icon: FaThermometerHalf, color: '#f59e0b' },
-    { title: 'Heatstroke', category: 'emergency', tags: ['sun', 'loo'], triage: 'emergency', snippet: 'Move to shade, cool with water, call 108 immediately. Stay hydrated in hot weather.', Icon: FaBolt, color: '#ef4444' },
-    { title: 'Nutrition Basics', category: 'preventive', tags: ['diet', 'balanced food'], triage: 'home', snippet: 'Eat a rainbow of fruits & vegetables. 8 glasses water daily. Avoid junk food.', Icon: MdShield, color: '#10b981' },
-];
+const triageConfig = {
+    home: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Home Care' },
+    clinic: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Visit Clinic' },
+    emergency: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Emergency' },
+};
 
 export default function KnowledgePage() {
+    const [activeCategory, setActiveCategory] = useState('All');
+
+    const topics = medicalKnowledge.map((entry) => {
+        const meta = categoryMeta[entry.category] || categoryMeta.condition;
+        return {
+            ...entry,
+            Icon: meta.Icon,
+            color: meta.color,
+            triage: triageByCategory[entry.category] || 'clinic',
+            snippet: entry.content.slice(0, 160) + (entry.content.length > 160 ? '…' : ''),
+        };
+    });
+
+    const filtered = activeCategory === 'All' ? topics : topics.filter(t => t.category === activeCategory);
+
     return (
         <>
             <nav className="navbar">
@@ -63,7 +69,7 @@ export default function KnowledgePage() {
                 </div>
             </nav>
 
-            <div style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+            <div style={{ paddingTop: '5rem', minHeight: '100vh' }}>
                 <div className="section" style={{ paddingBottom: '3rem' }}>
 
                     {/* Header */}
@@ -78,7 +84,7 @@ export default function KnowledgePage() {
                         </p>
                     </div>
 
-                    {/* Search bar */}
+                    {/* Search bar (decorative) */}
                     <div style={{ maxWidth: '560px', margin: '0 auto 2rem', position: 'relative' }}>
                         <div style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                             <FaSearch size={16} color="var(--text-muted)" />
@@ -103,18 +109,21 @@ export default function KnowledgePage() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', justifyContent: 'center', marginBottom: '2.5rem' }}>
                         {categories.map((cat) => {
                             const meta = categoryMeta[cat];
-                            const isActive = cat === 'All';
+                            const isActive = cat === activeCategory;
+                            const count = cat === 'All' ? topics.length : topics.filter(t => t.category === cat).length;
                             return (
-                                <span key={cat} style={{
+                                <span key={cat} onClick={() => setActiveCategory(cat)} style={{
                                     display: 'flex', alignItems: 'center', gap: '0.4rem',
                                     padding: '0.4rem 1rem',
                                     background: isActive ? 'var(--gradient-primary)' : 'var(--bg-glass)',
                                     border: `1px solid ${isActive ? 'transparent' : 'var(--border)'}`,
                                     borderRadius: '999px', fontSize: '0.82rem', fontWeight: '600',
                                     color: isActive ? '#fff' : 'var(--text-secondary)', cursor: 'pointer',
+                                    transition: 'all 0.2s',
                                 }}>
                                     <meta.Icon size={13} color={isActive ? '#fff' : meta.color} />
                                     {meta.label}
+                                    <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>({count})</span>
                                 </span>
                             );
                         })}
@@ -122,10 +131,11 @@ export default function KnowledgePage() {
 
                     {/* Topic cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
-                        {topics.map((topic, i) => {
+                        {filtered.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>No topics in this category.</div>}
+                        {filtered.map((topic) => {
                             const t = triageConfig[topic.triage];
                             return (
-                                <div key={i} className="feature-card" style={{ padding: '1.5rem', cursor: 'default' }}>
+                                <div key={topic.id} className="feature-card" style={{ padding: '1.5rem', cursor: 'default' }}>
                                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                                             <div style={{
@@ -150,7 +160,7 @@ export default function KnowledgePage() {
                                         {topic.snippet}
                                     </p>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                                        {topic.tags.slice(0, 2).map((tag) => (
+                                        {topic.tags.slice(0, 3).map((tag) => (
                                             <span key={tag} style={{
                                                 padding: '0.2rem 0.6rem', background: '#f1f5f9',
                                                 border: '1px solid var(--border)', borderRadius: '999px',
@@ -172,7 +182,7 @@ export default function KnowledgePage() {
                         <FaBolt size={28} color="#06b6d4" style={{ marginBottom: '0.75rem' }} />
                         <h3 style={{ fontWeight: '700', marginBottom: '0.5rem' }}>Semantic Search via Qdrant</h3>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto' }}>
-                            Each topic is embedded using <strong style={{ color: 'var(--primary-light)' }}>Ollama nomic-embed-text</strong> (768 dims)
+                            Each topic is embedded using <strong style={{ color: 'var(--primary-light)' }}>Jina AI</strong> (768 dims)
                             and stored in <strong style={{ color: 'var(--primary-light)' }}>Qdrant Cloud</strong> with cosine similarity.
                             When you speak, your query is embedded and matched in real-time.
                         </p>

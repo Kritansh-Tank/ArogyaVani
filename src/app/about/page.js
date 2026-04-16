@@ -70,7 +70,7 @@ export default function AboutPage() {
                 </div>
             </nav>
 
-            <div style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+            <div style={{ paddingTop: '5rem', minHeight: '100vh' }}>
 
                 {/* Hero */}
                 <div className="section" style={{ textAlign: 'center', paddingBottom: '2rem' }}>

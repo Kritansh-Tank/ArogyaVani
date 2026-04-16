@@ -28,9 +28,10 @@ Pages:
 | Route | Description |
 |---|---|
 | `/` | Landing page |
-| `/assistant` | 🎙️ Live voice triage assistant |
-| `/dashboard` | 📊 Triage analytics dashboard |
-| `/knowledge` | 📚 Medical knowledge base browser |
+| `/login` | 🔐 Sign in / Sign up |
+| `/assistant` | 🎙️ Live voice triage assistant *(auth required)* |
+| `/dashboard` | 📊 Real-time triage analytics *(auth required)* |
+| `/knowledge` | 📚 Medical knowledge base browser *(auth required)* |
 | `/about` | 🔧 Architecture & tech stack |
 
 ---
@@ -51,6 +52,10 @@ Qdrant semantic search (cosine similarity)
 Triage decision: 🟢 Home Care | 🟡 Visit Clinic | 🔴 Emergency
       ↓
 ElevenLabs TTS speaks the response
+      ↓
+Consultation saved to Supabase (EHR)
+      ↓
+Appointment booking modal (clinic/emergency cases)
 ```
 
 ### Triage Workflow (3-Step Protocol)
@@ -70,6 +75,8 @@ ElevenLabs TTS speaks the response
 | **GPT-4o mini** | Conversational reasoning & triage decisions (via Vapi credits) |
 | **ElevenLabs** | Multilingual TTS (EN + HI voices) |
 | **Next.js 16** | Full-stack framework (App Router) |
+| **Supabase** | PostgreSQL DB for users, consultations & appointments |
+| **bcryptjs + jose** | Password hashing & Edge-compatible JWT auth |
 
 ---
 
@@ -78,22 +85,33 @@ ElevenLabs TTS speaks the response
 ```
 src/
 ├── app/
-│   ├── page.js                  # Landing page
-│   ├── globals.css              # Design system (dark theme, glassmorphism)
-│   ├── assistant/page.js        # Voice triage interface
-│   ├── dashboard/page.js        # Analytics dashboard
-│   ├── knowledge/page.js        # Medical knowledge browser
-│   ├── about/page.js            # Architecture & about
+│   ├── page.js                      # Landing page
+│   ├── globals.css                  # Design system (light theme, glassmorphism)
+│   ├── login/page.js                # Sign in / Sign up
+│   ├── assistant/page.js            # Voice triage interface
+│   ├── dashboard/page.js            # Live analytics (real Supabase data)
+│   ├── knowledge/page.js            # Medical knowledge browser
+│   ├── about/page.js                # Architecture & about
 │   └── api/
-│       ├── seed/route.js        # Seeds Qdrant with 30 medical entries
-│       ├── search/route.js      # Semantic search endpoint
-│       └── vapi/route.js        # Vapi webhook handler
+│       ├── auth/
+│       │   ├── signup/route.js      # Register — bcrypt hash + JWT cookie
+│       │   ├── login/route.js       # Login — password verify + JWT cookie
+│       │   └── logout/route.js      # Clear auth cookie
+│       ├── appointments/route.js    # CRUD for appointment bookings
+│       ├── consultations/latest/    # Fetch most recent consultation
+│       ├── seed/route.js            # Seeds Qdrant with 30 medical entries
+│       └── vapi/route.js            # Vapi webhook (tool calls + EHR save)
+├── components/
+│   ├── GlobalBackground.js          # Fixed animated background (all pages)
+│   └── AppointmentModal.js          # Post-triage booking modal
 ├── hooks/
-│   └── useVapi.js               # Vapi Web SDK integration
-└── lib/
-    ├── qdrant.js                # Qdrant client singleton
-    ├── embeddings.js            # Ollama embedding utility
-    └── medical-data.js          # 30 bilingual medical knowledge entries
+│   └── useVapi.js                   # Vapi Web SDK integration
+├── lib/
+│   ├── supabase.js                  # Supabase browser + admin clients
+│   ├── qdrant.js                    # Qdrant client singleton
+│   ├── embeddings.js                # Jina AI / Ollama embedding utility
+│   └── medical-data.js             # 30 bilingual medical knowledge entries
+└── middleware.js                    # JWT route protection (jose, Edge-compatible)
 ```
 
 ---
@@ -102,7 +120,8 @@ src/
 
 ### Prerequisites
 - Node.js 18+
-- Qdrant Cloud account (or local Qdrant instance)
+- Supabase project (free tier)
+- Qdrant Cloud account
 - Vapi account
 - Jina AI account (free, 1M tokens at [jina.ai](https://jina.ai))
 
@@ -122,23 +141,71 @@ VAPI_PRIVATE_KEY=your_vapi_private_key
 QDRANT_URL=https://your-cluster.qdrant.io
 QDRANT_API_KEY=your_qdrant_api_key
 JINA_API_KEY=your_jina_api_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+JWT_SECRET=your_random_secret_string
 ```
 
-### 3. Start the dev server
+### 3. Create Supabase tables (one-time)
+
+Run in **Supabase → SQL Editor**:
+
+```sql
+create table app_users (
+  id uuid default gen_random_uuid() primary key,
+  email text unique not null,
+  password_hash text not null,
+  created_at timestamptz default now()
+);
+
+create table consultations (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid,
+  created_at timestamptz default now(),
+  language text default 'en',
+  triage_level text,
+  symptoms text,
+  summary text,
+  duration_seconds int,
+  call_id text
+);
+
+create table appointments (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid,
+  consultation_id uuid references consultations,
+  created_at timestamptz default now(),
+  appointment_date date,
+  time_slot text,
+  facility_name text,
+  doctor_name text,
+  status text default 'confirmed'
+);
+
+alter table app_users enable row level security;
+alter table consultations enable row level security;
+alter table appointments enable row level security;
+create policy "allow all" on app_users for all using (true) with check (true);
+create policy "allow all" on consultations for all using (true) with check (true);
+create policy "allow all" on appointments for all using (true) with check (true);
+```
+
+### 4. Start the dev server
 
 ```bash
 npm run dev
 ```
 
-### 4. Seed the Qdrant knowledge base (one-time)
+### 5. Seed the knowledge base (one-time)
 
 ```bash
 curl -X POST http://localhost:3000/api/seed
 ```
 
-### 5. Open the app
+### 6. Open the app
 
-Visit **http://localhost:3000** → Click **Try Voice Triage** → Speak your symptom.
+Visit **http://localhost:3000/login** → Create an account → Start voice triage.
 
 ---
 
@@ -159,31 +226,23 @@ Visit **http://localhost:3000** → Click **Try Voice Triage** → Speak your sy
 
 ## 🔮 Future Improvements (Offline Round)
 
-If selected for the offline round, the following enhancements are planned:
-
 ### 🏥 Clinical Integration
-- **EHR Integration** — Connect with open standards (FHIR/HL7) to pull patient history before triage
-- **Appointment Booking** — After a 🟡 Clinic triage, automatically book the nearest available PHC slot via integrations with platforms like Practo or eVital
-- **Doctor Handoff** — Generate a structured SOAP-format summary of the voice conversation to hand off to the attending physician
+- **FHIR/HL7 EHR** — Pull full patient history before triage
+- **IVR / Phone Calls** — Reach non-smartphone users via Vapi phone numbers
+- **Doctor Handoff** — Auto-generate SOAP-format summaries for physicians
 
 ### 🤖 AI Enhancements
-- **Personalized Memory** — Use Qdrant to store per-patient conversation history and symptom patterns for longitudinal tracking
-- **Differential Diagnosis Engine** — Multi-turn symptom collection with Bayesian probability scoring across conditions
-- **Drug Interaction Checker** — Integrate with a drug database API to warn about dangerous drug combinations
+- **Longitudinal Memory** — Per-patient symptom history in Qdrant
+- **Differential Diagnosis** — Multi-turn Bayesian scoring across conditions
+- **Drug Interaction Checker** — Warn about dangerous combinations
 
-### 🌍 Accessibility & Scale
-- **Offline Mode** — PWA with cached knowledge base for areas with no internet (using IndexedDB + local LLM via WebLLM)
-- **More Languages** — Expand beyond Hindi to Tamil, Telugu, Bengali, Marathi using regional TTS/STT models
-- **IVR Integration** — Deploy on basic phone calls (no smartphone needed) via Twilio + Vapi phone numbers
-- **WhatsApp Bot** — Reach patients on WhatsApp with the same voice triage flow
-
-### 📊 Analytics & Ops
-- **Real-time Monitoring** — Live Qdrant collection stats, Vapi call logs, and triage trend graphs
-- **Outbreak Detection** — Cluster symptom patterns geographically to flag potential disease outbreaks to health authorities
-- **Feedback Loop** — Patient-reported outcome tracking to improve triage accuracy over time
+### 🌍 Accessibility
+- **Offline PWA** — Cached knowledge base + local LLM via WebLLM
+- **More Languages** — Kannada, Tamil, Telugu, Bengali, Marathi
+- **WhatsApp Bot** — Same triage flow over WhatsApp
 
 ---
 
 ## 👥 Built at HackBLR 2026
 
-> Powered by **Vapi** · **Qdrant**
+> Powered by **Vapi** · **Qdrant** · **Supabase** · **Jina AI** · **Next.js**

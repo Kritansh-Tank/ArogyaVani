@@ -1,4 +1,5 @@
 import "./globals.css";
+import GlobalBackground from "@/components/GlobalBackground";
 
 export const metadata = {
   title: "ArogyaVani — Healthcare at Your Voice",
@@ -9,7 +10,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <GlobalBackground />
+        {children}
+      </body>
     </html>
   );
 }
