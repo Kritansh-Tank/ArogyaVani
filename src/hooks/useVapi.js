@@ -130,6 +130,11 @@ Rules:
 
             const assistantConfig = {
                 name: 'ArogyaVani',
+                transcriber: {
+                    provider: 'deepgram',
+                    model: 'nova-2',
+                    language: language === 'hi' ? 'hi' : 'en-IN',
+                },
                 model: {
                     provider: 'openai',
                     model: 'gpt-4o-mini',
@@ -154,7 +159,7 @@ Rules:
                     ],
                 },
                 voice: language === 'hi'
-                    ? { provider: '11labs', voiceId: 'aria' }
+                    ? { provider: 'azure', voiceId: 'hi-IN-SwaraNeural' }   // Native Hindi TTS
                     : { provider: '11labs', voiceId: 'sarah' },
                 firstMessage: language === 'hi'
                     ? 'नमस्ते! मैं आरोग्यवाणी हूं — आपकी voice triage सहायक। बताइए — आपको कौन सी तकलीफ है?'
