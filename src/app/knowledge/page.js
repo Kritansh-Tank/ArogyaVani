@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { FaSearch, FaCircle, FaHeartbeat, FaThermometerHalf, FaBolt } from 'react-icons/fa';
+import { FaSearch, FaCircle, FaHeartbeat } from 'react-icons/fa';
 import { MdHealthAndSafety, MdLocalHospital, MdShield, MdPregnantWoman, MdChildCare, MdPsychology } from 'react-icons/md';
 import { medicalKnowledge } from '@/lib/medical-data';
 
@@ -171,21 +171,6 @@ export default function KnowledgePage() {
                                 </div>
                             );
                         })}
-                    </div>
-
-                    {/* Qdrant callout */}
-                    <div style={{
-                        marginTop: '3rem', padding: '2rem', borderRadius: 'var(--radius)',
-                        background: 'linear-gradient(135deg, rgba(6,182,212,0.08), rgba(16,185,129,0.08))',
-                        border: '1px solid var(--border)', textAlign: 'center'
-                    }}>
-                        <FaBolt size={28} color="#06b6d4" style={{ marginBottom: '0.75rem' }} />
-                        <h3 style={{ fontWeight: '700', marginBottom: '0.5rem' }}>Semantic Search via Qdrant</h3>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto' }}>
-                            Each topic is embedded using <strong style={{ color: 'var(--primary-light)' }}>Jina AI</strong> (768 dims)
-                            and stored in <strong style={{ color: 'var(--primary-light)' }}>Qdrant Cloud</strong> with cosine similarity.
-                            When you speak, your query is embedded and matched in real-time.
-                        </p>
                     </div>
                 </div>
             </div>

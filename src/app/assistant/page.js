@@ -118,8 +118,8 @@ export default function AssistantPage() {
 
                     <p className="voice-hint">
                         {language === 'hi'
-                            ? '💡 बताएं: लक्षण, कितने समय से है, और उम्र — जैसे \"मुझे 2 दिन से बुखार है, मैं 35 साल का हूं\"'
-                            : '💡 Describe your symptom, duration & age — e.g. "I have had a fever for 2 days, I am 35 years old"'}
+                            ? 'बताएं: लक्षण, कितने समय से है, और उम्र — जैसे \"मुझे 2 दिन से बुखार है, मैं 35 साल का हूं\"'
+                            : 'Describe your symptom, duration & age — e.g. "I have had a fever for 2 days, I am 35 years old"'}
                     </p>
 
                     {error && (
@@ -133,7 +133,7 @@ export default function AssistantPage() {
                 <div className="transcript-section">
                     <div className="transcript-header">
                         <span className="transcript-title">
-                            {language === 'hi' ? '📝 बातचीत' : '📝 Conversation'}
+                            {language === 'hi' ? 'बातचीत' : 'Conversation'}
                         </span>
                     </div>
                     <div className="transcript-box">

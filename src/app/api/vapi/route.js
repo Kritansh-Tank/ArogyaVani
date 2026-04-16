@@ -44,31 +44,49 @@ function parseSymptoms(summary = '') {
     return match ? match[1].trim().slice(0, 200) : summary.slice(0, 200);
 }
 
-async function saveConsultation(callData) {
+async function saveConsultation(message) {
     try {
         const supabase = getSupabaseAdmin();
-        const summary = callData?.summary?.overview || callData?.analysis?.summary || '';
-        const triage = parseTriageLevel(summary);
-        const symptoms = parseSymptoms(summary);
 
-        // Try to infer user from metadata or leave null (anonymous)
-        const userId = callData?.metadata?.userId || null;
-        const language = callData?.metadata?.language || 'en';
-        const duration = callData?.durationSeconds || 0;
-        const callId = callData?.id || null;
+        // Vapi end-of-call-report: summary and transcript are at top level of message
+        const summary = message?.summary || '';
+        const transcript = message?.transcript || '';
+        const callObj = message?.call || {};
+
+        // Use transcript for richer triage parsing (covers full conversation)
+        const textToSearch = (transcript + ' ' + summary).toLowerCase();
+        let triage = 'home';
+        if (textToSearch.includes('emergency') || textToSearch.includes('🔴') || textToSearch.includes('go to emergency') || textToSearch.includes('call 108')) triage = 'emergency';
+        else if (textToSearch.includes('visit clinic') || textToSearch.includes('visit a clinic') || textToSearch.includes('see a doctor') || textToSearch.includes('🟡')) triage = 'clinic';
+
+        // Extract symptoms: grab first meaningful user utterance from transcript
+        const userLines = transcript.split('\n').filter(l => l.toLowerCase().startsWith('user:'));
+        const symptoms = userLines.length > 0
+            ? userLines.map(l => l.replace(/^user:\s*/i, '').trim()).join('; ').slice(0, 300)
+            : transcript.slice(0, 200);
+
+        // Duration from call timestamps
+        const createdAt = callObj?.createdAt ? new Date(callObj.createdAt).getTime() : 0;
+        const updatedAt = callObj?.updatedAt ? new Date(callObj.updatedAt).getTime() : 0;
+        const duration = createdAt && updatedAt ? Math.round((updatedAt - createdAt) / 1000) : 0;
+
+        const language = callObj?.metadata?.language || message?.metadata?.language || 'en';
+        const callId = callObj?.id || null;
+
+        console.log(`[vapi/consultation] triage=${triage} symptoms="${symptoms?.slice(0, 60)}" duration=${duration}s`);
 
         const { data, error } = await supabase.from('consultations').insert([{
-            user_id: userId,
+            user_id: null,
             language,
             triage_level: triage,
             symptoms,
-            summary,
+            summary: summary || transcript.slice(0, 500),
             duration_seconds: duration,
             call_id: callId,
         }]).select().single();
 
         if (error) throw error;
-        console.log(`[vapi/consultation] saved: id=${data.id} triage=${triage}`);
+        console.log(`[vapi/consultation] saved: id=${data.id}`);
         return data;
     } catch (err) {
         console.error('[vapi/consultation] save failed:', err.message);
@@ -85,7 +103,7 @@ export async function POST(request) {
 
         // ── Save consultation on call end ──
         if (message?.type === 'end-of-call-report') {
-            await saveConsultation(message?.call || {});
+            await saveConsultation(message);   // pass full message, not message.call
             return NextResponse.json({ success: true });
         }
 
