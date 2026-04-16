@@ -21,7 +21,7 @@ ArogyaVani removes all three barriers with a single voice interaction.
 ## 🚀 Live Demo
 
 ```
-http://localhost:3000
+https://arogya-vani.vercel.app/
 ```
 
 Pages:
