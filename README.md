@@ -246,3 +246,9 @@ Visit **http://localhost:3000/login** → Create an account → Start voice tria
 ## 👥 Built at HackBLR 2026
 
 > Powered by **Vapi** · **Qdrant** · **Supabase** · **Jina AI** · **Next.js**
+
+---
+
+## 📜 License
+
+MIT License - See LICENSE file for details
