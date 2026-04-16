@@ -15,6 +15,7 @@ export default function AssistantPage() {
     const [lastConsultationId, setLastConsultationId] = useState(null);
     const [lastTriageLevel, setLastTriageLevel] = useState('clinic');
     const [lastSymptoms, setLastSymptoms] = useState('');
+    const [triageResult, setTriageResult] = useState(null); // shown in transcript after call
     const prevStatusRef = useRef('idle');
 
     useEffect(() => {
@@ -33,7 +34,7 @@ export default function AssistantPage() {
             const symptoms = transcript.find(m => m.role === 'user')?.text || '';
             setLastTriageLevel(triage);
             setLastSymptoms(symptoms);
-
+            setTriageResult(triage); // show banner in transcript
             // Fetch latest consultation ID from Supabase
             fetch('/api/consultations/latest')
                 .then(r => r.json())
@@ -152,9 +153,33 @@ export default function AssistantPage() {
                                 </div>
                             ))
                         )}
+
+                        {/* Triage Result Banner */}
+                        {triageResult && !isActive && (() => {
+                            const config = {
+                                home: { emoji: '🟢', label: language === 'hi' ? 'घर पर देखभाल उचित है' : 'Home Care Recommended', color: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)', advice: language === 'hi' ? 'आराम करें, पानी पिएं, ओटीसी दवा लें।' : 'Rest, stay hydrated, take OTC medication.' },
+                                clinic: { emoji: '🟡', label: language === 'hi' ? 'क्लिनिक में जाएं' : 'Visit a Clinic', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', advice: language === 'hi' ? 'अगले 24 घंटे में डॉक्टर से मिलें।' : 'See a doctor within 24 hours.' },
+                                emergency: { emoji: '🔴', label: language === 'hi' ? 'आपातकाल — तुरंत जाएं' : 'Emergency — Seek Immediate Care', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', advice: language === 'hi' ? '108 पर कॉल करें या तुरंत अस्पताल जाएं।' : 'Call 108 or go to the hospital now.' },
+                            };
+                            const t = config[triageResult];
+                            return (
+                                <div style={{
+                                    margin: '1rem 0 0.5rem', padding: '1rem 1.25rem',
+                                    background: t.bg, border: `1px solid ${t.border}`,
+                                    borderRadius: '12px', textAlign: 'center',
+                                    animation: 'fadeInUp 0.4s ease',
+                                }}>
+                                    <div style={{ fontSize: '1.6rem', marginBottom: '0.3rem' }}>{t.emoji}</div>
+                                    <div style={{ fontWeight: '800', fontSize: '1rem', color: t.color }}>{t.label}</div>
+                                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{t.advice}</div>
+                                </div>
+                            );
+                        })()}
+
                         <div ref={transcriptEndRef} />
                     </div>
                 </div>
+
             </main>
 
             {/* Appointment Modal */}
