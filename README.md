@@ -80,6 +80,33 @@ Appointment booking modal (clinic/emergency cases)
 
 ---
 
+## User Interface
+- Landing Page
+  
+  ![Landing Page](assets/home_page.png)
+  
+- Voice Triage Assistant
+
+  ![Voice Triage Assistant](assets/assistant.png)
+  
+- Medical Knowledge Base
+
+  ![Medical Knowledge Base](assets/knowledge_base.png)
+  
+- Patient Dashboard
+
+  ![Patient Dashboard](assets/dashboard.png)
+
+- Sign In / Sign Up
+
+  ![Sign In / Sign Up](assets/signin_signup.png)
+
+- About
+
+  ![About](assets/about.png)
+
+---
+
 ## 📁 Project Structure
 
 ```
